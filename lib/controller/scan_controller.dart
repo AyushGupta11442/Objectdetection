@@ -1,18 +1,11 @@
 import 'dart:developer';
-import 'dart:ui' as ui;
 import 'package:camera/camera.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_tflite/flutter_tflite.dart';
 import 'package:get/get.dart';
 import 'package:permission_handler/permission_handler.dart';
 import '../views/ImagePreviewPage.dart';
-
-
-
-// Define a function to handle image manipulation
-Future<ui.Image> decodeImageFromList(Uint8List bytes) async {
-  return await decodeImageFromList(bytes);
-}
 
 class ScanController extends GetxController {
   @override
@@ -39,9 +32,12 @@ class ScanController extends GetxController {
   var h = 0.0.obs;
   var label = "".obs;
 
+  // Define maximum zoom level (adjust as needed)
+  final double maxZoomLevel = 2.0;
+
   Future<void> initCamera() async {
     var cameraPermission = await Permission.camera.request();
-    if (cameraPermission.isGranted ) {
+    if (cameraPermission.isGranted) {
       cameras = await availableCameras();
       cameraController = CameraController(
         cameras[0],
@@ -107,7 +103,15 @@ class ScanController extends GetxController {
         w.value = detector.first['rect']['w'];
         x.value = detector.first['rect']['x'];
         y.value = detector.first['rect']['y'];
-        captureImage();
+        
+
+        // Zoom in based on the height of the detected object
+        double targetZoomLevel = MediaQuery.of(Get.context!).size.height / (h.value * 2);
+        if (targetZoomLevel > maxZoomLevel) {
+          targetZoomLevel = maxZoomLevel;
+          captureImage();
+        }
+        await cameraController.setZoomLevel(targetZoomLevel);
       }
     } catch (e) {
       if (e is PlatformException && e.message?.contains('Interpreter busy') == true) {
@@ -116,22 +120,26 @@ class ScanController extends GetxController {
     }
   }
 
+  void captureImage() async {
+    if (cameraController.value.isRecordingVideo) {
+      // Stop recording if needed (optional)
+      return;
+    }
 
-Future<void> captureImage() async {
-  if (cameraController.value.isRecordingVideo) {
-    // Stop recording if needed (optional)
-    return;
+    try {
+      final XFile image = await cameraController.takePicture();
+      stopCameraStream(); // Stop camera stream before navigating away
+      Get.to(() => ImagePreviewPage(
+            imagePath: image,
+            // x: x.value.toInt(),
+            // y: y.value.toInt(),
+            // w: w.value.toInt(),
+            // h: h.value.toInt(),
+          ));
+    } catch (e) {
+      log('Error capturing image: $e');
+    }
   }
-
-  try {
-    final XFile image = await cameraController.takePicture();
-    stopCameraStream(); // Stop camera stream before navigating away
-    Get.to(() => ImagePreviewPage(imagePath: image, x: x.value.toInt(), y: y.value.toInt(), w: w.value.toInt(), h: h.value.toInt(),));
-  } catch (e) {
-    log('Error capturing image: $e' );
-  }
-}
-
 
   void stopCameraStream() {
     if (cameraController != null) {
