@@ -35,6 +35,9 @@ class ScanController extends GetxController {
   // Define maximum zoom level (adjust as needed)
   final double maxZoomLevel = 2.0;
 
+
+
+  // Function to initialize camera, handle camera permission, and start image stream.
   Future<void> initCamera() async {
     var cameraPermission = await Permission.camera.request();
     if (cameraPermission.isGranted) {
@@ -67,6 +70,12 @@ class ScanController extends GetxController {
     }
   }
 
+
+  /// Initializes the Tflite model for object detection.
+  ///
+  /// This function loads the SSD MobileNet model from the assets folder.
+  /// It uses a single thread for loading the model and does not use the GPU delegate.
+  /// After loading the model, it logs a success message, or an error message if the model fails to load.
   Future<void> initFlite() async {
     await Tflite.loadModel(
       model: "assets/ssd_mobilenet.tflite",
@@ -76,6 +85,18 @@ class ScanController extends GetxController {
       useGpuDelegate: false,
     ).then((_) => log("Model Loaded")).catchError((e) => log("Error Loading Model: $e"));
   }
+
+/// Performs object detection on a given camera image.
+///
+/// This function uses the Tflite library to perform object detection on a given camera image.
+/// It first checks if the time since the last frame is less than 250ms, and if so, it skips the current frame.
+/// Then, it uses the `detectObjectOnFrame` method from the Tflite library to perform the object detection.
+/// The detected object's class, height, width, and position are then stored in the respective variables.
+/// If an object is detected, the function calculates a target zoom level based on the height of the detected object and sets the camera's zoom level to this target zoom level.
+/// If the target zoom level is greater than the maximum zoom level, it is set to the maximum zoom level and an image is captured.
+/// If an error occurs during the object detection, it is logged.
+///
+/// @param image The camera image to perform object detection on.
 
   Future<void> objectDetector(CameraImage image) async {
     var now = DateTime.now();
@@ -119,6 +140,8 @@ class ScanController extends GetxController {
       } else {}
     }
   }
+  
+  // this function captures the image and navigates to the ImagePreviewPage
 
   void captureImage() async {
     if (cameraController.value.isRecordingVideo) {
@@ -140,6 +163,8 @@ class ScanController extends GetxController {
       log('Error capturing image: $e');
     }
   }
+
+  // this function stops the camera stream
 
   void stopCameraStream() {
     if (cameraController != null) {
