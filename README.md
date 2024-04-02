@@ -11,6 +11,9 @@ you can capture the image as by following image.
 4. you can see the preview the image.
 5. after the you can save the image.
 
+## 🧐 Build
+- you can find build projeect in object_detection_and_magnification\build\app\outputs\flutter-apk\app-debug.apk
+
 
 ## 🧐 Features    
 - detect object 
