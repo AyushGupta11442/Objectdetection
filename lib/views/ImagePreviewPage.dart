@@ -15,6 +15,8 @@ class ImagePreviewPage extends StatelessWidget {
 
   const ImagePreviewPage({Key? key, required this.imagePath, }) : super(key: key);
 
+  // function to save image to gallery
+
   Future<bool> saveImage(XFile image)async{
     Directory? directory;
     log('saveFile: $image');
@@ -89,7 +91,7 @@ class ImagePreviewPage extends StatelessWidget {
       onPressed: () {
         saveImage(imagePath);
       },
-      child: Icon(Icons.camera_alt),
+      child: Icon(Icons.save),
     ),
   );
 }}

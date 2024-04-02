@@ -42,7 +42,9 @@ class CamView extends StatelessWidget {
                         ),
                         FloatingActionButton(onPressed: (){
                           controller.captureImage();
-                        })
+                          
+                        },
+                        child: const Icon(Icons.camera),)
                       ],
                     )
                   : const Center(
